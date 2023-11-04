@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "726739577179",
+    "project_id": "place-keeper-c8738",
+    "storage_bucket": "place-keeper-c8738.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:726739577179:android:8d7b53b4480bde0209527e",
+        "android_client_info": {
+          "package_name": "com.iggydev.place_keeper"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC81fr1tJLl40nLa5icLeNHQ6OSs3BUjMM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
