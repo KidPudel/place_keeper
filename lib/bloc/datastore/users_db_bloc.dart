@@ -30,7 +30,8 @@ class UsersDbBloc extends Bloc<UsersDbEvent, UsersDbState> {
         }
         final documentData = value.data() as Map<String, dynamic>;
         final List<GeoPoint> places = List.from(documentData['places']);
-        emit(UsersDbState(status: UsersDbStatus.loaded, places: places, decodedPlaces: []));
+        final List<String> decodedPlaces = List.from(documentData['decoded_places']);
+        emit(UsersDbState(status: UsersDbStatus.loaded, places: places, decodedPlaces: decodedPlaces));
       });
     } catch (e) {
       emit(UsersDbState(status: UsersDbStatus.error, places: state.places, decodedPlaces: state.decodedPlaces));
@@ -80,8 +81,10 @@ class UsersDbBloc extends Bloc<UsersDbEvent, UsersDbState> {
           ...userSnapshotMap['places'],
           GeoPoint(event.lat, event.long)
         ];
-
-        final List<String> updatedDecodedPlaces = [...userSnapshotMap['decoded_places'], await _decodePlace(GeoPoint(event.lat, event.long))];
+        print('before converting');
+        final List<String> decodedPlaces = List.from(userSnapshotMap['decoded_places'] ?? []);
+        print("AAAAA");
+        final List<String> updatedDecodedPlaces = [...decodedPlaces, await _decodePlace(GeoPoint(event.lat, event.long))];
 
         transaction.update(documentReference, {'places': updatedPlaces, 'decoded_places' : updatedDecodedPlaces});
         return UsersDbState(status: UsersDbStatus.loaded, places: updatedPlaces, decodedPlaces: updatedDecodedPlaces);
@@ -110,11 +113,12 @@ class UsersDbBloc extends Bloc<UsersDbEvent, UsersDbState> {
           throw Exception("User does not exists");
         }
         final userData = ensuredUserRef.data() as Map<String, dynamic>;
-        final List<GeoPoint> updatedPlaces = List.from(userData['places'])
+        final List<GeoPoint> updatedPlaces = List.from(userData['places'] ?? [])
           ..removeWhere((element) =>
               element.latitude == event.lat && element.longitude == event.long);
 
-        final List<String> updatedDecodedPlaces = List.from(userData['decoded_places'])..removeWhere((element) => element == event.decodedPlace);
+        final List<String> decodedPlaces = List.from(userData['decoded_places']);
+        final List<String> updatedDecodedPlaces = List.from(decodedPlaces)..removeWhere((element) => element == event.decodedPlace);
 
         // update
         transaction.update(userRef, {'places': updatedPlaces, 'decoded_places' : updatedDecodedPlaces});
@@ -130,6 +134,7 @@ class UsersDbBloc extends Bloc<UsersDbEvent, UsersDbState> {
   }
 
   Future<String> _decodePlace(GeoPoint place) async {
+    print("converting");
     return await placemarkFromCoordinates(place.latitude, place.longitude).then(
             (value) => "Country: ${value[0].country}\nStreet: ${value[0].street}");
   }

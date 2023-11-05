@@ -61,23 +61,23 @@ class _LoginPageState extends State<LoginPage> {
                   ? 'Проверьте email формат'
                   : null,
             ),
-            SizedBox(
+            const SizedBox(
               height: 15,
             ),
             PurpleTextField(
               controller: _passwordController,
               labelText: 'Пароль',
             ),
-            SizedBox(
+            const SizedBox(
               height: 15,
             ),
             TextButton(
                 onPressed: () {
                   widget.pageController.animateToPage(0,
-                      duration: Duration(milliseconds: 200), curve: Curves.easeInOut);
+                      duration: const Duration(milliseconds: 200), curve: Curves.easeInOut);
                 },
-                child: Text('Регистрация')),
-            Expanded(child: SizedBox()),
+                child: const Text('Регистрация')),
+            const Expanded(child: SizedBox()),
             FractionallySizedBox(
                 widthFactor: 0.9,
                 child: BlocListener<UsersDbBloc, UsersDbState>(
@@ -105,7 +105,7 @@ class _LoginPageState extends State<LoginPage> {
                                                 context.read<AuthBloc>().add(SignOut());
                                                 context.pop();
                                               },
-                                              child: Text('ok'))
+                                              child: const Text('ok'))
                                         ],
                                       )).slideY(begin: 1, end: 0.1));
                         }
@@ -114,7 +114,7 @@ class _LoginPageState extends State<LoginPage> {
                       onPressed: _isEmailCorrect ? () {
                         context.read<AuthBloc>().add(SignIn(email: _emailController.text, password: _passwordController.text));
                       } : null,
-                      child: Text("Продолжить"),
+                      child: const Text("Продолжить"),
                     ),
                   ),
                 ))
@@ -122,9 +122,9 @@ class _LoginPageState extends State<LoginPage> {
         ),
         BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
           if (state.status.isLoading) {
-            return Center(child: CircularProgressIndicator.adaptive(valueColor: AlwaysStoppedAnimation(Colors.indigo)));
+            return const Center(child: CircularProgressIndicator.adaptive(valueColor: AlwaysStoppedAnimation(Colors.indigo)));
           } else {
-            return SizedBox();
+            return const SizedBox();
           }
         },)
       ],

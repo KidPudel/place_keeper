@@ -12,6 +12,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_animations/flutter_map_animations.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:is_first_run/is_first_run.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:place_keeper/bloc/auth/auth_bloc.dart';
@@ -20,6 +21,8 @@ import 'package:place_keeper/bloc/datastore/users_db_event.dart';
 import 'package:place_keeper/bloc/datastore/users_db_state.dart';
 import 'package:place_keeper/common/custom_colors.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:place_keeper/internal/di/locator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../bloc/auth/auth_state.dart';
 import 'custom/user_hud.dart';
@@ -43,6 +46,80 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
     // TODO: implement initState
     super.initState();
     //context.read<AuthBloc>().add(AuthStateChanges());
+    _showFirstMessage();
+  }
+
+  void _getLastPosition() {
+    final List<String>? lastPositionEncoded = locator.get<SharedPreferences>().getStringList('last_position');
+    if (lastPositionEncoded != null) {
+      final lat = double.parse(lastPositionEncoded[0]);
+      final long = double.parse(lastPositionEncoded[1]);
+      final lastPositionDecoded = LatLng(lat, long);
+      setState(() {
+        _currentPosition = lastPositionDecoded;
+      });
+      _animatedMapController.animateTo(dest: _currentPosition, zoom: 15);
+    } else {
+      print("NOOPE");
+      setState(() {
+        _currentPosition = const LatLng(55.7558, 37.6173);
+      });
+    }
+  }
+
+  Future<void> _showFirstMessage() async {
+    if (await IsFirstRun.isFirstCall() && context.mounted) {
+      showGeneralDialog(
+        context: context,
+        pageBuilder: (context, animation, secondaryAnimation) => Container(),
+        transitionBuilder: (context, animation, secondaryAnimation, child) =>
+            Animate(
+                child: AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          backgroundColor: CustomColors.surface,
+          title: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.5,
+            width: MediaQuery.of(context).size.width * 0.8,
+            child: Scrollbar(
+              thumbVisibility: true,
+              trackVisibility: true,
+              child: ListView(children: [
+                const Text(
+                  'Developed by Iggy (Купчиненко Игорь)\n',
+                  style: TextStyle(fontStyle: FontStyle.italic),
+                ),
+                Text(
+                  'WARNING: Чтобы получить весь функционал, используйте VPN. (Planet VPN)\n',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.red.shade900),
+                ),
+                const Text(
+                    'О приложении', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),),
+                const Text(
+                    'Это приложение позволяет вам сохранять и удалять любые места на карте, а так же определять текущую геолокацию.\n'),
+                const Text(
+                    'Функционал', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25)),
+                const Text(
+                    'В приложении можно создать аккаунт, в котором будут храниться ваши отмеченные места.'),
+                const Text(
+                    'Их можно добавлять нажатием на карту и удалять через экран профиля, так же на карте можно нажать на точку и посмотреть детали и удалить место.'),
+              ]),
+            ),
+          ),
+          actions: [
+            SizedBox(
+                width: 100,
+                child: ElevatedButton(
+                    onPressed: () => context.pop(),
+                    child: const Text(
+                      "ок",
+                      style: TextStyle(fontSize: 20),
+                    )))
+          ],
+        )),
+      );
+    }
   }
 
   @override
@@ -54,17 +131,33 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
               mapController: _animatedMapController.mapController,
               options: MapOptions(
                   initialZoom: 12,
-                  initialCenter: _currentPosition,
+                  initialCenter: _currentPosition!,
                   onTap: (tapPosition, point) {
-                    print('tap');
                     if (context.read<AuthBloc>().state.status.isSignedIn) {
+                      // set new position
+                      locator.get<SharedPreferences>().setStringList('last_position', [point.latitude.toString(), point.longitude.toString()]);
                       context.read<UsersDbBloc>().add(AddPlaceToUser(
                           uid: context.read<AuthBloc>().state.uid,
                           lat: point.latitude,
                           long: point.longitude));
+                    } else {
+                      final snackBar = SnackBar(
+                        content: const Text(
+                          'Чтобы сохранять места, вам нужно авторизироваться',
+                          style: TextStyle(fontSize: 18),
+                        ),
+                        shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(10),
+                                bottom: Radius.circular(0))),
+                        action: SnackBarAction(
+                            label: 'ok',
+                            onPressed: () => ScaffoldMessenger.of(context)
+                                .hideCurrentSnackBar()),
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(snackBar);
                     }
-                  },
-                  onMapReady: () async => await _checkPermission()),
+                  }, onMapReady: () => _getLastPosition(),),
               children: [
                 TileLayer(
                   urlTemplate:
@@ -76,7 +169,8 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                   return MarkerLayer(markers: [
                     for (int i = 0; i < state.places.length; i++) ...{
                       Marker(
-                          point: LatLng(state.places[i].latitude, state.places[i].longitude),
+                          point: LatLng(state.places[i].latitude,
+                              state.places[i].longitude),
                           child: GestureDetector(
                             child: const Icon(
                               Icons.place,
@@ -84,7 +178,8 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                               size: 40,
                             ),
                             onTap: () {
-                              _placeDetails(context, state.places[i], state.decodedPlaces[i]);
+                              _placeDetails(context, state.places[i],
+                                  state.decodedPlaces[i]);
                             },
                           ))
                     }
@@ -92,19 +187,26 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                 })
               ]),
           UserHud(getCurrentLocationCallback: _checkPermission),
-          BlocBuilder<UsersDbBloc, UsersDbState>(builder: (context, state) {
-            if (state.status.isLoading) {
-              return const Center(child: CircularProgressIndicator.adaptive(valueColor: AlwaysStoppedAnimation(CustomColors.indigoPurple)),);
-            } else {
-              return const SizedBox();
-            }
-          },)
+          BlocBuilder<UsersDbBloc, UsersDbState>(
+            builder: (context, state) {
+              if (state.status.isLoading) {
+                return const Center(
+                  child: CircularProgressIndicator.adaptive(
+                      valueColor:
+                          AlwaysStoppedAnimation(CustomColors.indigoPurple)),
+                );
+              } else {
+                return const SizedBox();
+              }
+            },
+          )
         ],
       ),
     );
   }
 
-  void _placeDetails(BuildContext context, GeoPoint place, String decodedPlace) async {
+  void _placeDetails(
+      BuildContext context, GeoPoint place, String decodedPlace) async {
     final decodedPlace = await _decodePlace(place);
     if (context.mounted) {
       showModalBottomSheet(
@@ -120,7 +222,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                     padding: const EdgeInsets.all(10.0),
                     child: Text(
                       decodedPlace,
-                      style: TextStyle(fontSize: 20),
+                      style: const TextStyle(fontSize: 20),
                     ),
                   ),
                   FractionallySizedBox(
@@ -135,18 +237,34 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                                       secondaryAnimation, child) =>
                                   Animate(
                                 child: AlertDialog.adaptive(
-                                    title:
-                                        Text("Вы уверены, что хотите удалить место?"),
-                                    actions: [TextButton(onPressed: (){context.pop();}, child: Text("Не удалять")), TextButton(onPressed: (){
-                                      context.read<UsersDbBloc>().add(
-                                          DeletePlaceFromUser(uid: context.read<AuthBloc>().state.uid,
-                                              lat: place.latitude, long: place.longitude, decodedPlace: decodedPlace));
-                                      context.pop();
-                                      context.pop();
-                                    }, child: Text("Удалить"))]),
+                                    title: const Text(
+                                        "Вы уверены, что хотите удалить место?"),
+                                    actions: [
+                                      TextButton(
+                                          onPressed: () {
+                                            context.pop();
+                                          },
+                                          child: const Text("Не удалять")),
+                                      TextButton(
+                                          onPressed: () {
+                                            context.read<UsersDbBloc>().add(
+                                                DeletePlaceFromUser(
+                                                    uid: context
+                                                        .read<AuthBloc>()
+                                                        .state
+                                                        .uid,
+                                                    lat: place.latitude,
+                                                    long: place.longitude,
+                                                    decodedPlace:
+                                                        decodedPlace));
+                                            context.pop();
+                                            context.pop();
+                                          },
+                                          child: const Text("Удалить"))
+                                    ]),
                               ),
                             ),
-                        child: Text(
+                        child: const Text(
                           "Удалить место",
                           style: TextStyle(fontSize: 18),
                         )),
@@ -157,18 +275,10 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
   }
 
   Future _checkPermission() async {
-    print('checking permission');
-    if (await Permission.locationWhenInUse.request().isGranted) {
-      print("permission granted");
-
+    if (await Permission.location.request().isGranted) {
       _getCurrentLocation();
     } else {
-      print('not granted');
-      await Permission.locationWhenInUse.request();
-      /*showGeneralDialog(context: context,
-          pageBuilder: (context, animation, secondaryAnimation) => Container(),
-          transitionBuilder: (context, animation, secondaryAnimation, child) =>
-              Animate(child: AlertDialog(title: Text(),) ));*/
+      await Permission.location.request();
     }
   }
 

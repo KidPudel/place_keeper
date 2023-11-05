@@ -12,6 +12,7 @@ import 'package:place_keeper/bloc/auth/auth_state.dart';
 import 'package:place_keeper/bloc/datastore/users_db_bloc.dart';
 import 'package:place_keeper/bloc/datastore/users_db_event.dart';
 import 'package:place_keeper/bloc/datastore/users_db_state.dart';
+import 'package:place_keeper/common/custom_colors.dart';
 import 'package:place_keeper/common/routes.dart';
 
 class UserPage extends StatelessWidget {
@@ -27,7 +28,7 @@ class UserPage extends StatelessWidget {
               return Text(state.email);
             }),
             leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios_new),
+              icon: const Icon(Icons.arrow_back_ios_new),
               onPressed: () {
                 context.go(Routes.mapPage().route);
               },
@@ -63,16 +64,47 @@ class UserPage extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(state.decodedPlaces[index]),
-                              IconButton(onPressed: (){}, icon: Icon(Icons.close))
+                              IconButton(
+                                  onPressed: () {
+                                    context.read<UsersDbBloc>().add(
+                                        DeletePlaceFromUser(
+                                            uid: context
+                                                .read<AuthBloc>()
+                                                .state
+                                                .uid,
+                                            lat: state.places[index].latitude,
+                                            long: state.places[index].longitude,
+                                            decodedPlace:
+                                                state.decodedPlaces[index]));
+                                  },
+                                  icon: const Icon(Icons.close))
                             ],
                           ),
-                          Divider(color: Colors.blueGrey, thickness: 1,)
+                          const Divider(
+                            color: Colors.blueGrey,
+                            thickness: 1,
+                          )
                         ],
                       ),
                     );
                   });
+            } else if (state.places.isEmpty) {
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset('images/empty.png'),
+                  const Text(
+                    "Кажется ваша корзина еще пуста ;(",
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  )
+                ],
+              );
             } else {
-              return Column(mainAxisAlignment: MainAxisAlignment.center, children: [Image.asset('images/empty.png'), Text("Кажется ваша корзина еще пуста ;(", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),) ],);
+              return const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation(CustomColors.indigoPurple),
+                ),
+              );
             }
           })),
     );

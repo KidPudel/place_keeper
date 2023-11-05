@@ -17,11 +17,22 @@ import '../presentation/user_page.dart';
 class Application extends StatelessWidget {
   Application({super.key});
 
-  final GoRouter _goRouter = GoRouter(initialLocation: Routes.mapPage().route, routes: [
-    GoRoute(path: Routes.mapPage().route, builder: (context, state) => MapPage(),),
-    GoRoute(path: Routes.entryPage().route, builder: (context, state) => EntryPage(),),
-    GoRoute(path: Routes.userPage().route, builder: (context, state) => const UserPage(),),
+  final GoRouter _goRouter =
+      GoRouter(initialLocation: Routes.mapPage().route, routes: [
+    GoRoute(
+      path: Routes.mapPage().route,
+      builder: (context, state) => MapPage(),
+    ),
+    GoRoute(
+      path: Routes.entryPage().route,
+      builder: (context, state) => EntryPage(),
+    ),
+    GoRoute(
+      path: Routes.userPage().route,
+      builder: (context, state) => const UserPage(),
+    ),
   ]);
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
@@ -29,15 +40,14 @@ class Application extends StatelessWidget {
           BlocProvider(
             create: (context) => AuthBloc()..add(AuthStateChanges()),
           ),
-          BlocProvider(create: (context) => UsersDbBloc(),)
+          BlocProvider(
+            create: (context) => UsersDbBloc(),
+          ),
         ],
-      child:
-         MaterialApp.router(
+        child: MaterialApp.router(
           routerConfig: _goRouter,
           title: "Place Keeper",
           theme: lightTheme,
-        )
-
-    );
+        ));
   }
 }
