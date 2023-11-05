@@ -10,3 +10,4 @@ App that lets you save a places you care about
 - geocoding
 - geolocation
 
+more info about packages is at `pubspec.yaml`
