@@ -36,28 +36,25 @@ class _EntryPageState extends State<EntryPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Hero(
-      tag: 'entry-point',
-      child: Scaffold(
-        appBar: AppBar(
-          title: (_currentPage == 0) ? const Text("Регистрация") : const Text("Авторизация"),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new),
-            onPressed: () {
-              context.pop();
-            },
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: (_currentPage == 0) ? const Text("Регистрация") : const Text("Авторизация"),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new),
+          onPressed: () {
+            context.pop();
+          },
         ),
-        body: PageView.builder(
-          // lazy
-          controller: _pageController,
-          itemCount: _pages!.length,
-          itemBuilder: (context, index) => _pages![index],
-          onPageChanged: (value) => setState((){
-            // app bar awareness
-            _currentPage = value;
-          })
-        ),
+      ),
+      body: PageView.builder(
+        // lazy
+        controller: _pageController,
+        itemCount: _pages!.length,
+        itemBuilder: (context, index) => _pages![index],
+        onPageChanged: (value) => setState((){
+          // app bar awareness
+          _currentPage = value;
+        })
       ),
     );
   }

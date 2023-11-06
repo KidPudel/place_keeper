@@ -81,7 +81,7 @@ class _LoginPageState extends State<LoginPage> {
             FractionallySizedBox(
                 widthFactor: 0.9,
                 child: BlocListener<UsersDbBloc, UsersDbState>(
-                  listener: (context, state) => context.go(Routes.userPage().route),
+                  listener: (context, state) => context.goNamed(Routes.userPage().route),
                   child: BlocListener<AuthBloc, AuthState>(
                       listener: (context, state) {
                         if (state.status.isSignedIn) {

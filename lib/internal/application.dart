@@ -21,15 +21,41 @@ class Application extends StatelessWidget {
       GoRouter(initialLocation: Routes.mapPage().route, routes: [
     GoRoute(
       path: Routes.mapPage().route,
-      builder: (context, state) => MapPage(),
+      name: Routes.mapPage().route,
+      builder: (context, state) => const MapPage(),
     ),
     GoRoute(
       path: Routes.entryPage().route,
-      builder: (context, state) => EntryPage(),
+      name: Routes.entryPage().route,
+      pageBuilder: (context, state) => CustomTransitionPage(
+        transitionDuration: Duration(milliseconds: 200),
+        reverseTransitionDuration: Duration(milliseconds: 100),
+        key: state.pageKey,
+        child: const EntryPage(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            ScaleTransition(
+          scale: CurvedAnimation(
+              parent: animation, curve: Curves.easeIn, reverseCurve: Curves.easeOut),
+          alignment: Alignment.topRight,
+          child: child,
+        ),
+      ),
     ),
     GoRoute(
       path: Routes.userPage().route,
-      builder: (context, state) => const UserPage(),
+      name: Routes.userPage().route,
+      pageBuilder: (context, state) => CustomTransitionPage(
+        transitionDuration: const Duration(milliseconds: 200),
+        reverseTransitionDuration: const Duration(milliseconds: 200),
+        key: state.pageKey,
+        child: const UserPage(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            ScaleTransition(
+          scale: CurvedAnimation(parent: animation, curve: Curves.easeIn, reverseCurve: Curves.easeOut),
+          alignment: Alignment.topRight,
+          child: child,
+        ),
+      ),
     ),
   ]);
 

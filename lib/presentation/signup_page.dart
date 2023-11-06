@@ -119,7 +119,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     child: BlocListener<UsersDbBloc, UsersDbState>(
                       listener: (context, state) {
                         if (state.status.isLoaded) {
-                          context.go(Routes.userPage().route);
+                          context.goNamed(Routes.userPage().route);
                         }
                       },
                       child: BlocListener<AuthBloc, AuthState>(

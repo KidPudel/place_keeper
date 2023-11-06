@@ -60,41 +60,37 @@ class UserHud extends StatelessWidget {
                       }
                     }, builder: (context, state) {
                       if (state.status.isSignedIn) {
-                        return Hero(
-                            tag: 'user',
-                            child: ElevatedButton(
-                              onPressed: () {
-                                context.go(Routes.userPage().route);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.deepPurple.shade50,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20))),
-                              child: const Icon(
-                                Icons.accessibility,
-                                color: Colors.deepPurple,
-                              ),
-                            ));
+                        return ElevatedButton(
+                          onPressed: () {
+                            context.push(Routes.userPage().route);
+                          },
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.deepPurple.shade50,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20))),
+                          child: const Icon(
+                            Icons.accessibility,
+                            color: Colors.deepPurple,
+                          ),
+                        );
                       } else if (state.status.isSignedOut) {
-                        return Hero(
-                            tag: 'entry-point',
-                            child: ElevatedButton(
-                                onPressed: () {
-                                  context.push(Routes.entryPage().route);
-                                },
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.deepPurple.shade50,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(20))),
-                                child: Text(
-                                  "Войти",
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium!
-                                      .copyWith(
-                                          color: CustomColors.indigoPurple),
-                                )));
+                        return ElevatedButton(
+                            onPressed: () {
+                              context.push(Routes.entryPage().route);
+                            },
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.deepPurple.shade50,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.circular(20))),
+                            child: Text(
+                              "Войти",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium!
+                                  .copyWith(
+                                      color: CustomColors.indigoPurple),
+                            ));
                       } else {
                         return const CircularProgressIndicator.adaptive();
                       }
