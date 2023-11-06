@@ -29,8 +29,8 @@ class UsersDbBloc extends Bloc<UsersDbEvent, UsersDbState> {
           throw Exception("user doesnt exists");
         }
         final documentData = value.data() as Map<String, dynamic>;
-        final List<GeoPoint> places = List.from(documentData['places']);
-        final List<String> decodedPlaces = List.from(documentData['decoded_places']);
+        final List<GeoPoint> places = List.from(documentData['places'] ?? []);
+        final List<String> decodedPlaces = List.from(documentData['decoded_places'] ?? []);
         emit(UsersDbState(status: UsersDbStatus.loaded, places: places, decodedPlaces: decodedPlaces));
       });
     } catch (e) {
